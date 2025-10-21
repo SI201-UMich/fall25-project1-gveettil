@@ -65,24 +65,23 @@ def main():
     region_crops = find_category_seg(data)
     
     # Write results to files
-    with open('crop_yields.csv', 'w', newline='') as file:
+    with open('average_yield_results.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['Crop', 'Average Yield (tons/hectare)'])
         for crop, avg_yield in average_yields.items():
             writer.writerow([crop, f"{avg_yield:.2f}"])
 
-    with open('region_crops.txt', 'w') as file:
+    with open('most_common_crops_by_region.txt', 'w') as file:
         file.write("Most Frequent Crop by Region:\n\n")
         for region, crop in region_crops.items():
             file.write(f"Region: {region}\n")
             file.write(f"Most Common Crop: {crop}\n\n")
 
 class TestCropYieldAnalysis(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        # Create a test CSV file
-        cls.test_file = 'test_crop_yield.csv'
-        with open(cls.test_file, 'w', newline='') as file:
+    def setUp(self):
+        # Create a test CSV file before each test
+        self.test_file = 'test_crop_yield.csv'
+        with open(self.test_file, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['Region', 'Soil_Type', 'Crop', 'Rainfall_mm', 'Temperature_Celsius', 
                            'Fertilizer_Used', 'Irrigation_Used', 'Weather_Condition', 
@@ -93,12 +92,6 @@ class TestCropYieldAnalysis(unittest.TestCase):
                 ['Region2', 'Sandy', 'Wheat', '150', '28', 'Yes', 'No', 'Sunny', '95', '4.8'],
                 ['Region2', 'Loam', 'Corn', '180', '27', 'Yes', 'Yes', 'Cloudy', '100', '6.0']
             ])
-
-    @classmethod
-    def tearDownClass(cls):
-        # Clean up test file
-        if os.path.exists(cls.test_file):
-            os.remove(cls.test_file)
 
     def test_load_data_normal(self):
         """Test 1: Normal case - file exists with data"""

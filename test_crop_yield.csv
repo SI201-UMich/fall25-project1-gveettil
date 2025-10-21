@@ -1,0 +1,5 @@
+Region,Soil_Type,Crop,Rainfall_mm,Temperature_Celsius,Fertilizer_Used,Irrigation_Used,Weather_Condition,Days_to_Harvest,Yield_tons_per_hectare
+Region1,Sandy,Wheat,100,25,Yes,Yes,Sunny,90,5.5
+Region1,Clay,Rice,200,30,Yes,Yes,Rainy,120,4.2
+Region2,Sandy,Wheat,150,28,Yes,No,Sunny,95,4.8
+Region2,Loam,Corn,180,27,Yes,Yes,Cloudy,100,6.0
