@@ -1,81 +1,8 @@
-import csv
 import unittest
+import csv
 import os
+from main import load_data, get_category_sales, calculate_average, find_category_seg
 from collections import defaultdict
-
-def load_data(file_path):
-    """
-    Load data from CSV file into a list of dictionaries.
-    """
-    data = []
-    with open(file_path, 'r') as file:
-        csv_reader = csv.DictReader(file)
-        for row in csv_reader:
-            data.append(row)
-    return data
-
-def get_category_sales(data):
-    """
-    Get yield data for each crop by region
-    """
-    category_sales = defaultdict(list)
-    for row in data:
-        yield_value = float(row['Yield_tons_per_hectare'])
-        crop = row['Crop']
-        category_sales[crop].append(yield_value)
-    return category_sales
-
-def calculate_average(category_sales):
-    """
-    Calculate average yield per crop
-    """
-    averages = {}
-    for crop, yields in category_sales.items():
-        averages[crop] = sum(yields) / len(yields)
-    return averages
-
-def find_category_seg(data):
-    """
-    Find most frequent crop for each region
-    """
-    region_crops = defaultdict(lambda: defaultdict(int))
-    
-    for row in data:
-        region = row['Region']
-        crop = row['Crop']
-        region_crops[region][crop] += 1
-    
-    result = {}
-    for region, crops in region_crops.items():
-        result[region] = max(crops.items(), key=lambda x: x[1])[0]
-    
-    return result
-
-def main():
-    """Main function to orchestrate the data analysis"""
-    # Load data
-    file_path = 'crop_yield.csv'
-    data = load_data(file_path)
-    
-    # Get yields by crop and calculate averages
-    category_sales = get_category_sales(data)
-    average_yields = calculate_average(category_sales)
-    
-    # Find most frequent crop per region
-    region_crops = find_category_seg(data)
-    
-    # Write results to files
-    with open('crop_yields.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Crop', 'Average Yield (tons/hectare)'])
-        for crop, avg_yield in average_yields.items():
-            writer.writerow([crop, f"{avg_yield:.2f}"])
-
-    with open('region_crops.txt', 'w') as file:
-        file.write("Most Frequent Crop by Region:\n\n")
-        for region, crop in region_crops.items():
-            file.write(f"Region: {region}\n")
-            file.write(f"Most Common Crop: {crop}\n\n")
 
 class TestCropYieldAnalysis(unittest.TestCase):
     @classmethod
@@ -208,12 +135,5 @@ class TestCropYieldAnalysis(unittest.TestCase):
         result = find_category_seg(data)
         self.assertTrue(result['R1'] in ['Wheat', 'Rice'])
 
-if __name__ == "__main__":
-    # First run the tests
-    import unittest
-    import os
-    unittest.main(argv=[''], exit=False)
-    
-    # Then run the main program
-    print("\nRunning main program...")
-    main()
+if __name__ == '__main__':
+    unittest.main()

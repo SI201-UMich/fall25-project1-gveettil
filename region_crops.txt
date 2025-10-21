@@ -1,0 +1,14 @@
+Most Frequent Crop by Region:
+
+Region: West
+Most Common Crop: Maize
+
+Region: South
+Most Common Crop: Wheat
+
+Region: North
+Most Common Crop: Wheat
+
+Region: East
+Most Common Crop: Soybean
+
