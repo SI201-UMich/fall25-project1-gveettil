@@ -1,12 +1,9 @@
 import csv
 import unittest
 import os
-from collections import defaultdict
 
 def load_data(file_path):
-    """
-    Load data from CSV file into a list of dictionaries.
-    """
+    
     data = []
     with open(file_path, 'r') as file:
         csv_reader = csv.DictReader(file)
@@ -14,55 +11,58 @@ def load_data(file_path):
             data.append(row)
     return data
 
-def get_category_sales(data):
+def group_yields_by_crop(data):
     """
-    Get yield data for each crop by region
+    Group yield values by crop name
     """
-    category_sales = defaultdict(list)
+    crop_yields = {}
     for row in data:
         yield_value = float(row['Yield_tons_per_hectare'])
         crop = row['Crop']
-        category_sales[crop].append(yield_value)
-    return category_sales
+        if crop not in crop_yields:
+            crop_yields[crop] = []
+        crop_yields[crop].append(yield_value)
+    return crop_yields
 
-def calculate_average(category_sales):
+def calculate_average_yield(crop_yields):
     """
-    Calculate average yield per crop
+    Calculate average yield for each crop
     """
     averages = {}
-    for crop, yields in category_sales.items():
+    for crop, yields in crop_yields.items():
         averages[crop] = sum(yields) / len(yields)
     return averages
 
-def find_category_seg(data):
+def most_frequent_crop_by_region(data):
     """
-    Find most frequent crop for each region
+    Find the most frequent crop for each region
     """
-    region_crops = defaultdict(lambda: defaultdict(int))
-    
+    region_crops = {}
     for row in data:
         region = row['Region']
         crop = row['Crop']
+        if region not in region_crops:
+            region_crops[region] = {}
+        if crop not in region_crops[region]:
+            region_crops[region][crop] = 0
         region_crops[region][crop] += 1
-    
     result = {}
     for region, crops in region_crops.items():
         result[region] = max(crops.items(), key=lambda x: x[1])[0]
-    
     return result
 
 def main():
-    """Main function to orchestrate the data analysis"""
+
     # Load data
     file_path = 'crop_yield.csv'
     data = load_data(file_path)
     
-    # Get yields by crop and calculate averages
-    category_sales = get_category_sales(data)
-    average_yields = calculate_average(category_sales)
+    # Group yields by crop and calculate averages
+    crop_yields = group_yields_by_crop(data)
+    average_yields = calculate_average_yield(crop_yields)
     
     # Find most frequent crop per region
-    region_crops = find_category_seg(data)
+    region_crops = most_frequent_crop_by_region(data)
     
     # Write results to files
     with open('average_yield_results.csv', 'w', newline='') as file:
@@ -122,83 +122,83 @@ class TestCropYieldAnalysis(unittest.TestCase):
         self.assertEqual(len(data), 0)
         os.remove(empty_file)
 
-    def test_get_category_sales_normal(self):
+    def test_group_yields_by_crop_normal(self):
         """Test 1: Normal case - multiple crops"""
         data = load_data(self.test_file)
-        result = get_category_sales(data)
+        result = group_yields_by_crop(data)
         self.assertEqual(len(result), 3)  # Wheat, Rice, Corn
         self.assertTrue(all(isinstance(yields, list) for yields in result.values()))
 
-    def test_get_category_sales_values(self):
+    def test_group_yields_by_crop_values(self):
         """Test 2: Normal case - check specific values"""
         data = load_data(self.test_file)
-        result = get_category_sales(data)
+        result = group_yields_by_crop(data)
         wheat_yields = result['Wheat']
         self.assertEqual(len(wheat_yields), 2)
         self.assertIn(5.5, wheat_yields)
         self.assertIn(4.8, wheat_yields)
 
-    def test_get_category_sales_empty_data(self):
+    def test_group_yields_by_crop_empty_data(self):
         """Test 3: Edge case - empty dataset"""
-        result = get_category_sales([])
+        result = group_yields_by_crop([])
         self.assertEqual(len(result), 0)
 
-    def test_get_category_sales_missing_values(self):
+    def test_group_yields_by_crop_missing_values(self):
         """Test 4: Edge case - missing yield values"""
         data = [{'Crop': 'Wheat', 'Yield_tons_per_hectare': ''},
                 {'Crop': 'Wheat', 'Yield_tons_per_hectare': '5.0'}]
         with self.assertRaises(ValueError):
-            get_category_sales(data)
+            group_yields_by_crop(data)
 
-    def test_calculate_average_normal(self):
+    def test_calculate_average_yield_normal(self):
         """Test 1: Normal case - multiple values"""
-        category_sales = {'Wheat': [5.5, 4.8], 'Rice': [4.2]}
-        result = calculate_average(category_sales)
+        crop_yields = {'Wheat': [5.5, 4.8], 'Rice': [4.2]}
+        result = calculate_average_yield(crop_yields)
         self.assertAlmostEqual(result['Wheat'], 5.15)
         self.assertAlmostEqual(result['Rice'], 4.2)
 
-    def test_calculate_average_single_value(self):
-        """Test 2: Normal case - single value per category"""
-        category_sales = {'Corn': [6.0]}
-        result = calculate_average(category_sales)
+    def test_calculate_average_yield_single_value(self):
+        """Test 2: Normal case - single value per crop"""
+        crop_yields = {'Corn': [6.0]}
+        result = calculate_average_yield(crop_yields)
         self.assertEqual(result['Corn'], 6.0)
 
-    def test_calculate_average_empty_dict(self):
+    def test_calculate_average_yield_empty_dict(self):
         """Test 3: Edge case - empty dictionary"""
-        result = calculate_average({})
+        result = calculate_average_yield({})
         self.assertEqual(result, {})
 
-    def test_calculate_average_empty_list(self):
-        """Test 4: Edge case - category with empty list"""
-        category_sales = {'Wheat': []}
+    def test_calculate_average_yield_empty_list(self):
+        """Test 4: Edge case - crop with empty list"""
+        crop_yields = {'Wheat': []}
         with self.assertRaises(ZeroDivisionError):
-            calculate_average(category_sales)
+            calculate_average_yield(crop_yields)
 
-    def test_find_category_seg_normal(self):
+    def test_most_frequent_crop_by_region_normal(self):
         """Test 1: Normal case - multiple regions"""
         data = load_data(self.test_file)
-        result = find_category_seg(data)
+        result = most_frequent_crop_by_region(data)
         self.assertEqual(len(result), 2)  # Two regions
         self.assertTrue(all(isinstance(crop, str) for crop in result.values()))
 
-    def test_find_category_seg_specific_region(self):
+    def test_most_frequent_crop_by_region_specific_region(self):
         """Test 2: Normal case - check specific region"""
         data = load_data(self.test_file)
-        result = find_category_seg(data)
+        result = most_frequent_crop_by_region(data)
         self.assertEqual(result['Region1'], 'Wheat')  # Most frequent in Region1
 
-    def test_find_category_seg_empty_data(self):
+    def test_most_frequent_crop_by_region_empty_data(self):
         """Test 3: Edge case - empty dataset"""
-        result = find_category_seg([])
+        result = most_frequent_crop_by_region([])
         self.assertEqual(len(result), 0)
 
-    def test_find_category_seg_tie(self):
+    def test_most_frequent_crop_by_region_tie(self):
         """Test 4: Edge case - tie in frequency"""
         data = [
             {'Region': 'R1', 'Crop': 'Wheat'},
             {'Region': 'R1', 'Crop': 'Rice'},
         ]
-        result = find_category_seg(data)
+        result = most_frequent_crop_by_region(data)
         self.assertTrue(result['R1'] in ['Wheat', 'Rice'])
 
 if __name__ == "__main__":
