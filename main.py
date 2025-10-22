@@ -1,3 +1,9 @@
+# Name: Gautham Veettil
+# Student ID: 0719 8442
+# Email: gveettil@umich.edu
+# Who or what you worked with on this homework (including generative AI like ChatGPT):
+# Used ChatGPT to help structure unit tests and come up with edge cases for testing.
+
 import csv
 import unittest
 import os
@@ -49,7 +55,13 @@ def most_frequent_crop_by_region(data):
         region_crops[region][crop] += 1
     result = {}
     for region, crops in region_crops.items():
-        result[region] = max(crops.items(), key=lambda x: x[1])[0]
+        most_common_crop = None
+        highest_count = -1
+        for crop, count in crops.items():
+            if count > highest_count:
+                most_common_crop = crop
+                highest_count = count
+        result[region] = most_common_crop
     return result
 
 def main():
