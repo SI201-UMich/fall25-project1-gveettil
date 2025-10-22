@@ -24,10 +24,11 @@ def group_yields_by_crop(data):
         crop_yields[crop].append(yield_value)
     return crop_yields
 
-def calculate_average_yield(crop_yields):
+def calculate_average_yield(data):
     """
-    Calculate average yield for each crop
+    Group yields by crop and calculate average yield for each crop
     """
+    crop_yields = group_yields_by_crop(data)
     averages = {}
     for crop, yields in crop_yields.items():
         averages[crop] = sum(yields) / len(yields)
@@ -57,9 +58,8 @@ def main():
     file_path = 'crop_yield.csv'
     data = load_data(file_path)
     
-    # Group yields by crop and calculate averages
-    crop_yields = group_yields_by_crop(data)
-    average_yields = calculate_average_yield(crop_yields)
+    # Calculate average yields for each crop
+    average_yields = calculate_average_yield(data)
     
     # Find most frequent crop per region
     region_crops = most_frequent_crop_by_region(data)
@@ -152,27 +152,35 @@ class TestCropYieldAnalysis(unittest.TestCase):
 
     def test_calculate_average_yield_normal(self):
         """Test 1: Normal case - multiple values"""
-        crop_yields = {'Wheat': [5.5, 4.8], 'Rice': [4.2]}
-        result = calculate_average_yield(crop_yields)
+        data = [
+            {'Crop': 'Wheat', 'Yield_tons_per_hectare': '5.5'},
+            {'Crop': 'Wheat', 'Yield_tons_per_hectare': '4.8'},
+            {'Crop': 'Rice', 'Yield_tons_per_hectare': '4.2'}
+        ]
+        result = calculate_average_yield(data)
         self.assertAlmostEqual(result['Wheat'], 5.15)
         self.assertAlmostEqual(result['Rice'], 4.2)
 
     def test_calculate_average_yield_single_value(self):
         """Test 2: Normal case - single value per crop"""
-        crop_yields = {'Corn': [6.0]}
-        result = calculate_average_yield(crop_yields)
+        data = [
+            {'Crop': 'Corn', 'Yield_tons_per_hectare': '6.0'}
+        ]
+        result = calculate_average_yield(data)
         self.assertEqual(result['Corn'], 6.0)
 
     def test_calculate_average_yield_empty_dict(self):
         """Test 3: Edge case - empty dictionary"""
-        result = calculate_average_yield({})
+        result = calculate_average_yield([])
         self.assertEqual(result, {})
 
     def test_calculate_average_yield_empty_list(self):
         """Test 4: Edge case - crop with empty list"""
-        crop_yields = {'Wheat': []}
-        with self.assertRaises(ZeroDivisionError):
-            calculate_average_yield(crop_yields)
+        data = [
+            {'Crop': 'Wheat', 'Yield_tons_per_hectare': ''}
+        ]
+        with self.assertRaises(ValueError):
+            calculate_average_yield(data)
 
     def test_most_frequent_crop_by_region_normal(self):
         """Test 1: Normal case - multiple regions"""
